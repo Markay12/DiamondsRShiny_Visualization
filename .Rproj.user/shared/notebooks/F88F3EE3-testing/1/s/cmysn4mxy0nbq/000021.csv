@@ -1,0 +1,3 @@
+"0","data <- diamonds"
+"0",""
+"0","data[c('carat', 'price')]"

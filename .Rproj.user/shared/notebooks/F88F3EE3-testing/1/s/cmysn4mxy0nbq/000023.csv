@@ -1,0 +1,5 @@
+"0",""
+"0","View(data[order(data$carat), ])"
+"0",""
+"0","plot(data$carat, type = ""l"")"
+"0",""

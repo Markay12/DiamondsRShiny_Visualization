@@ -1,0 +1,11 @@
+```{r}
+data <- diamonds
+
+data[c('carat', 'price')]
+
+View(data[order(data$carat), ])
+
+plot(data$carat, type = "l")
+
+```
+

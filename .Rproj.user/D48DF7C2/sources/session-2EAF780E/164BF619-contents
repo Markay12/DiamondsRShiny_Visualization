@@ -1,0 +1,127 @@
+## Import Shiny
+
+library(shiny)
+library(tidyverse)
+
+
+# Define UI for miles per gallon app ----
+ui <- fluidPage(
+  
+  
+  # Create App title
+  titlePanel("Carbon Dioxide Uptake in Grass Plants"),
+  
+  # Sidebar panel for input on the left
+  sidebarLayout(
+    
+    sidebarPanel(
+      
+      selectInput("variable", "Variable:", 
+                  
+                  c("Uptake" = "uptake",
+                    "Concentration" = "conc"),
+                  
+                  selected = character(0),
+                  
+                  ),
+      
+      
+      
+    
+      
+      conditionalPanel(
+        
+        ## only show the slider if uptake is chosen
+        condition = "input.variable == 'uptake'",
+        
+        sliderInput(inputId = "bins",
+                    label = "Number of Bins:",
+                    min = 1,
+                    max = 27,
+                    value = 15),
+        
+        
+        
+        
+        )
+      
+      
+      
+      
+    ),
+  
+  
+    # Main panel for displaying outputs
+    mainPanel(
+      
+        
+      # Output histogram
+      plotOutput("data")
+      
+      
+      
+      
+    )
+  )
+)
+
+plant_data <- CO2
+
+# Define server logic to plot various variables against mpg ----
+server <- function(input, output) {
+  
+  
+  # create plot of plants that are treated in different ways
+  uptake <- renderPlot({
+    
+
+    x = plant_data$uptake
+    
+    
+    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+    
+    hist(x, breaks = bins, col = "blue", border = "black", main = "Histogram of Carbon Dioxide Uptake Rates for Grass Plants", xlab = "Uptake Rate in (micro-mol / m^2 sec)")
+    
+  })
+  
+  conc <- renderPlot({
+    
+    plot(plant_data$conc, type = "p", col = "blue", ylab=("Plant Concentrations per Type"), xlab="Unique Plants", lab = c(9, 5, 9))
+    
+    
+  })
+  
+  
+  dataInput <- reactive({
+    
+    if (input$variable == "uptake")
+    {
+      
+      plotset <- uptake
+      
+      
+    }
+    else if (input$variable == "conc")
+    {
+      
+      
+      plotset <- conc
+      
+    }
+    
+    return(plotset)
+    
+    
+  })
+  
+  output$data <- renderPlot({
+    
+    dataInput()
+    
+  })
+  
+}
+
+
+
+shinyApp(ui, server)
