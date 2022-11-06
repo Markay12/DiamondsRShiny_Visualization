@@ -1,4 +1,7 @@
 library(shiny)
+library(ggplot2)
+library(tidyverse)
+
 
 dia_data <- diamonds
 dia_data <- dia_data[order(dia_data$carat),]
@@ -18,7 +21,8 @@ ui <- fluidPage(
       # Input: Selector for choosing diamonds information
       selectInput(inputId = "diamonds",
                   label = "Choose a Analysis Selection:",
-                  choices = c("Carat Information", "Depth Information", "Carat and Price in USD", "Carat Plot")),
+                  choices = c("Carat Information", "Depth Information", "Carat and Price in USD", 
+                              "Carat Plot", "Carat vs Price Plot", "Depth and Clarity vs Price")),
       
       conditionalPanel("input.diamonds == 'Carat Information' || input.diamonds == 'Depth Information' || input.diamonds == 'Carat and Price in USD'",
       
@@ -47,11 +51,12 @@ ui <- fluidPage(
                        
                        ),
       
-      conditionalPanel("input.diamonds == 'Carat Plot'", 
+      conditionalPanel("input.diamonds == 'Carat Plot' || input.diamonds == 'Carat vs Price Plot' || input.diamonds == 'Depth and Clarity vs Price'", 
                        
                        
                        plotOutput("plot")
                        )
+
       
       
     )
@@ -67,7 +72,9 @@ server <- function(input, output) {
            "Carat Information" = dia_data$carat,
            "Depth Information" = dia_data$depth,
            "Carat and Price in USD" = dia_data[c('carat', 'price')],
-           "Carat Plot" = dia_data$carat
+           "Carat Plot" = "carat_plot",
+           "Carat vs Price Plot" = "carat_vs_price",
+           "Depth and Clarity vs Price" = "depth_clarity_price"
     )
     
   })
@@ -75,18 +82,96 @@ server <- function(input, output) {
 
   # Generate a summary of the dataset
   output$summary <- renderPrint({
-    dataset <- datasetInput()
-    summary(dataset)
+    
+    if (identical(datasetInput(), "carat_plot"))
+    {
+      
+      dataset <- dia_data$carat
+      summary(dataset)
+      
+    }
+    else if (identical(datasetInput(), "carat_vs_price"))
+    {
+      
+      dataset1 <- dia_data[,c("carat", "price")]
+      summary(dataset1)
+      
+    }
+    else if (identical(datasetInput(), "depth_clarity_price"))
+    {
+      
+      dataset2 <- dia_data[,c("carat", "depth", "price")]
+      summary(dataset2)
+      
+    }
+    else
+    {
+      
+      dataset <- datasetInput()
+      summary(dataset)
+      
+    }
+    
   })
   
   # Show the first "n" observations
   output$view <- renderTable({
-    head(datasetInput(), n = input$obs)
+    
+    if  (identical(datasetInput(), "carat_plot"))
+    {
+      
+      head(dia_data$carat, n = input$obs)
+      
+    }
+    else
+    {
+      
+      head(datasetInput(), n = input$obs)
+      
+      
+    }
+      
   })
   
   output$plot <- renderPlot({
     
-    plot(datasetInput(), type = "l", col = "orange", main = "Plot of Diamond Carat Information", ylab = "Cara (Weight) Value from 0.2 - 5.01", xlab = "Individual Diamonds Tested")
+    
+    if (identical(datasetInput(), "carat_plot"))
+    {
+      
+      plot(dia_data$carat, type = "l", col = "orange", main = "Plot of Diamond Carat Information", ylab = "Cara (Weight) Value from 0.2 - 5.01", xlab = "Individual Diamonds Tested")
+      
+      
+    }
+    else if (identical(datasetInput(), "carat_vs_price"))
+    {
+      
+      ## carat vs price plot
+      
+      thisplot <- ggplot(data = dia_data, aes(x = carat, y = price)) + 
+        geom_point(size = 0.5,aes(color = clarity)) + geom_smooth(formula = y ~ x, method = "lm")
+      
+      thisplot
+      
+      
+      
+    }
+    else if (identical(datasetInput(), "depth_clarity_price"))
+    {
+      
+      thisPlot2 <- ggplot(data, aes(x = price, y = depth, color = clarity)) + 
+        geom_point(alpha = 0.25) +
+        geom_smooth(formula = y ~ x, method = "loess",  se = FALSE)
+      
+      thisPlot2
+    }
+    
+    else
+    {
+      
+      ## no plot
+      
+    }
     
   })
   

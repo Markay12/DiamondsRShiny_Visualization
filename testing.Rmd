@@ -1,4 +1,5 @@
 ```{r}
+library(ggplot2)
 data <- diamonds
 
 data[c('carat', 'price')]
@@ -7,5 +8,14 @@ View(data[order(data$carat), ])
 
 plot(data$carat, type = "l")
 
+```
+
+
+```{r}
+thisPlot2 <- ggplot(data, aes(x = price, y = depth, color = clarity)) + 
+        geom_point(alpha = 0.25) +
+        geom_smooth(method = "loess",  se = FALSE)
+      
+      thisPlot2
 ```
 
