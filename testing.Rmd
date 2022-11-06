@@ -19,3 +19,12 @@ thisPlot2 <- ggplot(data, aes(x = price, y = depth, color = clarity)) +
       thisPlot2
 ```
 
+```{r}
+plotly <- data$price
+# bins <- seq(min(plotly), max(plotly), length.out =  input$bins + 1)
+      
+thisPlot3 <- hist(plotly)
+      
+thisPlot3
+```
+

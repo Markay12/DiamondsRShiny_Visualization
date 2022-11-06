@@ -1,6 +1,8 @@
 library(shiny)
 library(ggplot2)
 library(tidyverse)
+library(plotly)
+library(ggpubr)
 
 
 dia_data <- diamonds
@@ -9,7 +11,7 @@ dia_data <- dia_data[order(dia_data$carat),]
 ## Define UI for dataset viewer app 
 ui <- fluidPage(
   
-  # App title ----
+  # App title
   titlePanel("Prices and Information of 50k Round Cut Diamonds"),
   
   # Sidebar layout with a input and output definitions
@@ -21,7 +23,7 @@ ui <- fluidPage(
       # Input: Selector for choosing diamonds information
       selectInput(inputId = "diamonds",
                   label = "Choose a Analysis Selection:",
-                  choices = c("Carat Information", "Depth Information", "Carat and Price in USD", 
+                  choices = c("Carat Information", "Depth Information", "Carat and Price in USD", "Histogram of Prices",
                               "Carat Plot", "Carat vs Price Plot", "Depth and Clarity vs Price")),
       
       conditionalPanel("input.diamonds == 'Carat Information' || input.diamonds == 'Depth Information' || input.diamonds == 'Carat and Price in USD'",
@@ -30,7 +32,18 @@ ui <- fluidPage(
         numericInput(inputId = "obs",
                     label = "Number of observations to view:",
                     value = 10)
-      )
+      ),
+      
+      conditionalPanel("input.diamonds == 'Histogram of Prices'",
+                       
+                       sliderInput(inputId = "bins",
+                                   label = "Number of Bins:",
+                                   min = 1,
+                                   max = 30,
+                                   value = 15
+                                   )
+                       
+                       ),
     ),
     
     # Main panel for displaying outputs ----
@@ -51,7 +64,7 @@ ui <- fluidPage(
                        
                        ),
       
-      conditionalPanel("input.diamonds == 'Carat Plot' || input.diamonds == 'Carat vs Price Plot' || input.diamonds == 'Depth and Clarity vs Price'", 
+      conditionalPanel("input.diamonds == 'Carat Plot' || input.diamonds == 'Carat vs Price Plot' || input.diamonds == 'Depth and Clarity vs Price' || input.diamonds == 'Histogram of Prices'", 
                        
                        
                        plotOutput("plot")
@@ -72,12 +85,14 @@ server <- function(input, output) {
            "Carat Information" = dia_data$carat,
            "Depth Information" = dia_data$depth,
            "Carat and Price in USD" = dia_data[c('carat', 'price')],
+           "Histogram of Prices" = "price_hist",
            "Carat Plot" = "carat_plot",
            "Carat vs Price Plot" = "carat_vs_price",
            "Depth and Clarity vs Price" = "depth_clarity_price"
     )
     
   })
+  
   
 
   # Generate a summary of the dataset
@@ -102,6 +117,13 @@ server <- function(input, output) {
       
       dataset2 <- dia_data[,c("carat", "depth", "price")]
       summary(dataset2)
+      
+    }
+    else if(identical(datasetInput(), "price_hist"))
+    {
+      
+      dataset3 <- dia_data$price
+      summary(dataset3)
       
     }
     else
@@ -139,7 +161,7 @@ server <- function(input, output) {
     if (identical(datasetInput(), "carat_plot"))
     {
       
-      plot(dia_data$carat, type = "l", col = "orange", main = "Plot of Diamond Carat Information", ylab = "Cara (Weight) Value from 0.2 - 5.01", xlab = "Individual Diamonds Tested")
+      plot(dia_data$carat, type = "l", col = "orange", main = "Plot of Diamond Carat Information", ylab = "Carat (Weight) Value from 0.2 - 5.01", xlab = "Individual Diamonds Tested")
       
       
     }
@@ -165,7 +187,18 @@ server <- function(input, output) {
       
       thisPlot2
     }
-    
+    else if (identical(datasetInput(), "price_hist"))
+    {
+      
+      plotly <- dia_data$price
+      bins <- seq(min(plotly), max(plotly), length.out =  input$bins + 1)
+      
+      thisPlot3 <- hist(plotly, breaks = bins, col = "orange", xlab = "Prices in USD ($)", main = "Histogram of Prices")
+      
+      thisPlot3
+      
+      
+    }
     else
     {
       
